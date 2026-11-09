@@ -111,6 +111,9 @@ server loads into memory when it starts, ready for Ask Copper to search.
 | Data | `lib/copper/data/passages.json` | `{ model, dimensions, createdAt, passages: [{ id, documentId, title, page, text, embedding }] }`, about 0.7 MB |
 | Loader | `lib/copper/passages.ts`, `instrumentation.ts` | `PASSAGES` and `PASSAGE_MODEL`; `register()` imports them once at server start and logs `[passages] loaded N document passages` |
 | AI calls | `callEmbedMany` in `lib/ai/call.ts`, `{ module: 3, feature: "doc-embeddings" }` | `gemini-embedding-001` at 768 dimensions, `RETRIEVAL_DOCUMENT` for passages (use `RETRIEVAL_QUERY` for questions). One batched call per build, a fraction of a cent |
+| Tool | `search_docs` in `lib/copper/assistant/tools.ts`, `lib/copper/doc-search.ts` | Embeds the question (`RETRIEVAL_QUERY`), scores it against every passage in memory (dot product) and returns the 5 closest with title, page, score and a `/docs/<id>.pdf#page=N` link. Copper must call it for setup, troubleshooting, warranty and policy questions and cite document and page |
+| Tool card | `components/copper/ask-copper.tsx` (`ToolOutput`) | Lists the 5 passages, each linking to its PDF page in a new tab |
+| AI calls | `{ module: 3, feature: "search-docs" }` | One embedding call per search, plus the usual `ask-copper` streamed call |
 
 **Decisions and trade-offs:** In-memory vectors instead of a vector database:
 about 100 passages compare in well under a millisecond, and the file ships with

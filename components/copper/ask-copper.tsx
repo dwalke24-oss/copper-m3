@@ -9,6 +9,8 @@ import {
   ArrowRightIcon,
   ArrowUpIcon,
   BrainIcon,
+  ExternalLinkIcon,
+  FileTextIcon,
   MessageCircleIcon,
   TriangleAlertIcon,
   WrenchIcon,
@@ -148,7 +150,8 @@ export function AskCopper({ aiConfigured }: { aiConfigured: boolean }) {
                   Ask Copper
                 </SheetTitle>
                 <SheetDescription className="text-xs text-white/70">
-                  Prices, totals and stock, checked with tools.
+                  Prices, stock and help from Copper&apos;s guides, checked with
+                  tools.
                 </SheetDescription>
               </div>
               <SheetClose asChild>
@@ -225,7 +228,7 @@ export function AskCopper({ aiConfigured }: { aiConfigured: boolean }) {
                   aria-label="Your question"
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Ask about prices or stock…"
+                  placeholder="Ask about prices, stock or setup…"
                   className="bg-background focus-visible:ring-ring h-10 flex-1 rounded-full border px-4 text-sm outline-none focus-visible:ring-2"
                 />
                 <Button
@@ -605,6 +608,34 @@ function ToolOutput({ name, output }: { name: string; output: any }) {
       </div>
     );
   }
+  if (name === "search_docs" && Array.isArray(output?.results))
+    return (
+      <ol className="space-y-2 text-xs" data-testid="doc-results">
+        {output.results.map((r: any, i: number) => (
+          <li key={`${r.url}-${i}`} className="bg-card rounded-lg border p-2">
+            <div className="flex items-start justify-between gap-2">
+              <a
+                href={r.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline"
+              >
+                <FileTextIcon className="size-3.5 shrink-0" />
+                {r.title}, page {r.page}
+                <ExternalLinkIcon className="size-3 shrink-0" />
+              </a>
+              <span
+                className="bg-accent/15 shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px]"
+                title="How close in meaning to the question, from 0 to 1"
+              >
+                {Number(r.score).toFixed(2)}
+              </span>
+            </div>
+            <p className="text-muted-foreground mt-1 line-clamp-3">{r.text}</p>
+          </li>
+        ))}
+      </ol>
+    );
   // A tool without its own layout yet: show what came back as plain text.
   return (
     <pre className="max-h-48 overflow-auto text-xs whitespace-pre-wrap">
