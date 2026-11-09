@@ -96,3 +96,27 @@ each step. Module 3 teaches it to answer from the customer documents.
 | Instructions | `lib/copper/assistant/instructions.ts` | `COPPER_INSTRUCTIONS`. Copper says it can't help yet with warranty, setup, troubleshooting or privacy |
 | Data | `lib/copper/inventory.ts`, `lib/copper/documents.ts` | Stock from `lib/copper/data/inventory.json`; `DOCUMENTS`: the four customer documents and their PDF paths under `public/docs/`. The PDFs are added in class |
 | AI calls | `{ module: 2, feature: "ask-copper" }` | One streamed call per question |
+
+## Module 3: Document passages and embeddings
+
+**Summary:** The four customer PDFs in `public/docs/` are split into passages
+of a few sentences, each tagged with its document title and page, and embedded
+with Gemini. The passages and their vectors live in one JSON file that the
+server loads into memory when it starts, ready for Ask Copper to search.
+
+| Piece | Where | What it does |
+|---|---|---|
+| Build script | `scripts/build-passages.mts` (`npm run passages:build`) | Reads each PDF with `unpdf`, splits every page, embeds all passages in one batch and writes the JSON. Run it again when a PDF changes |
+| Splitter | `lib/copper/passage-split.ts` | Drops each page's running header, rejoins wrapped lines, groups up to 4 sentences (about 600 characters) per passage and keeps headings with the text after them. Each passage's text starts with its document title |
+| Data | `lib/copper/data/passages.json` | `{ model, dimensions, createdAt, passages: [{ id, documentId, title, page, text, embedding }] }`, about 0.7 MB |
+| Loader | `lib/copper/passages.ts`, `instrumentation.ts` | `PASSAGES` and `PASSAGE_MODEL`; `register()` imports them once at server start and logs `[passages] loaded N document passages` |
+| AI calls | `callEmbedMany` in `lib/ai/call.ts`, `{ module: 3, feature: "doc-embeddings" }` | `gemini-embedding-001` at 768 dimensions, `RETRIEVAL_DOCUMENT` for passages (use `RETRIEVAL_QUERY` for questions). One batched call per build, a fraction of a cent |
+
+**Decisions and trade-offs:** In-memory vectors instead of a vector database:
+about 100 passages compare in well under a millisecond, and the file ships with
+the app. Vectors are cut to 768 numbers, scaled to length 1 (so similarity is a
+dot product) and rounded to 6 decimals to keep the file small.
+
+**Risks and open questions:** The JSON must be rebuilt whenever a PDF changes,
+and questions must be embedded with the same model and dimensions
+(`PASSAGE_MODEL`), or the scores mean nothing.

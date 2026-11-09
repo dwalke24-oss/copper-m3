@@ -15,3 +15,6 @@ export function costUsd(
   const price = PRICING[model];
   return (inputTokens * price.input + outputTokens * price.output) / 1_000_000;
 }
+
+/** US dollars per million input tokens for the embedding model (no output tokens). */
+export const EMBEDDING_PRICE_PER_MILLION = 0.15;
