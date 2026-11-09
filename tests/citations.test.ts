@@ -55,5 +55,8 @@ describe("citations in Copper's replies", () => {
     expect(COPPER_INSTRUCTIONS).toMatch(/every sentence/);
     expect(COPPER_INSTRUCTIONS).toMatch(/never guess/i);
     expect(COPPER_INSTRUCTIONS).toMatch(/Copper Crew/);
+    // "Can Copper Home order me a pizza?" is a question about the device, so
+    // it must search the docs rather than be turned away as off-topic.
+    expect(COPPER_INSTRUCTIONS).toMatch(/can or can't do/);
   });
 });
